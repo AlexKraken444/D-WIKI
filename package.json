@@ -2,7 +2,29 @@
   "name": "d-wiki",
   "version": "1.0.0",
   "private": true,
-  "scripts": {"dev": "next dev", "build": "next build", "start": "next start", "typecheck": "tsc --noEmit", "test": "tsx --test tests/*.test.ts"},
-  "dependencies": {"@supabase/supabase-js": "latest", "lucide-react": "latest", "next": "latest", "react": "latest", "react-dom": "latest", "react-markdown": "latest", "remark-gfm": "latest", "unist-util-visit": "latest"},
-  "devDependencies": {"@types/node": "latest", "@types/react": "latest", "@types/react-dom": "latest", "typescript": "latest", "tsx": "latest", "@types/mdast": "latest"}
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/*.test.ts"
+  },
+  "dependencies": {
+    "lucide-react": "latest",
+    "next": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "react-markdown": "latest",
+    "remark-gfm": "latest",
+    "unist-util-visit": "latest",
+    "server-only": "^0.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "typescript": "latest",
+    "tsx": "latest",
+    "@types/mdast": "latest"
+  }
 }
