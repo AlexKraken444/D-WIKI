@@ -1,14 +1,13 @@
 'use client';
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
-import { seedArticles } from '@/lib/seed';
 import type { Article } from '@/lib/types';
 
 type WikiContext = { articles: Article[]; ready: boolean; error: string; userId: string | null; saved: string[]; toggleSaved: (id:string)=>void; refresh:()=>Promise<void>; save: (article: Partial<Article> & Pick<Article,'title'|'content'|'excerpt'|'cover'|'category'|'author_name'>)=>Promise<string>; upload:(file:File)=>Promise<string>; demo:boolean };
 const Context = createContext<WikiContext | null>(null);
 const STORE = 'd-wiki-articles-v1';
 export function WikiProvider({children}:{children:React.ReactNode}) {
-  const [articles,setArticles] = useState<Article[]>(seedArticles);
+  const [articles,setArticles] = useState<Article[]>([]);
   const [ready,setReady] = useState(false);
   const [error,setError] = useState('');
   const [userId,setUserId] = useState<string|null>(null);
@@ -18,12 +17,12 @@ export function WikiProvider({children}:{children:React.ReactNode}) {
       if (supabase) {
         const {data,error} = await supabase.from('articles').select('*').order('created_at',{ascending:false});
         if (error) throw error;
-        setArticles([...(data || []), ...seedArticles]);
+        setArticles(data || []);
         const {data: session} = await supabase.auth.getSession();
         setUserId(session.session?.user.id || null);
       } else {
         const stored = JSON.parse(localStorage.getItem(STORE) || '[]') as Article[];
-        setArticles([...stored,...seedArticles]);
+        setArticles(stored);
         let id = localStorage.getItem('d-wiki-author');
         if (!id) { id = crypto.randomUUID(); localStorage.setItem('d-wiki-author',id); }
         setUserId(id);
