@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { isModerator } from '@/lib/moder-auth';
 import { randomUUID } from 'node:crypto';
 import { configured, redis } from '@/lib/redis';
 import { author, sameOrigin, allowed } from '@/lib/server-auth';
@@ -14,7 +15,7 @@ export async function GET() {
     const id = await author(true);
     const values = await redis<string[]>('HVALS', 'dw:articles');
     const articles = values.map(raw => { const { title_key, ...article } = JSON.parse(raw); void title_key; return {...article,category:normalizeCategory(article.category)} as Article; }).sort((a,b) => b.created_at.localeCompare(a.created_at));
-    return NextResponse.json({ articles, userId: id }, { headers: { 'Cache-Control': 'private, no-store' } });
+    return NextResponse.json({ articles, userId: id, isModerator: await isModerator() }, { headers: { 'Cache-Control': 'private, no-store' } });
   } catch { return fail('Не удалось подключиться к Upstash Redis. Проверьте настройки базы.', 503); }
 }
 export async function POST(request: Request) {
@@ -22,6 +23,7 @@ export async function POST(request: Request) {
   if (!configured()) return fail('Upstash Redis ещё не подключён.', 503);
   try {
     const owner = await author();
+    const moderator = await isModerator();
     if (!owner) return fail('Обновите страницу, чтобы создать сессию автора.', 401);
     const text = await request.text();
     if (Buffer.byteLength(text) > 500000) return fail('Статья слишком большая.', 413);
@@ -35,7 +37,7 @@ export async function POST(request: Request) {
     const id = input.id || randomUUID();
     const now = new Date().toISOString();
     const article: Article = { ...fields, id, author_id: owner, created_at: now, updated_at: now };
-    const result = await redis<string>('EVAL', saveArticleScript, 2, 'dw:articles', 'dw:titles', id, JSON.stringify(article), input.id ? 'edit' : 'new', input.updated_at || '', fields.title.normalize('NFKC').toLocaleLowerCase('ru'));
+    const result = await redis<string>('EVAL', saveArticleScript, 2, 'dw:articles', 'dw:titles', id, JSON.stringify(article), input.id ? 'edit' : 'new', input.updated_at || '', fields.title.normalize('NFKC').toLocaleLowerCase('ru'), moderator ? 'moderator' : 'author');
     const errors: Record<string, string> = { forbidden: 'Эту статью может редактировать только автор.', missing: 'Статья не найдена.', stale: 'Статья изменена в другой вкладке. Обновите страницу.', duplicate: 'Это заглавие уже занято.', conflict: 'Конфликт публикации. Попробуйте ещё раз.' };
     if (result !== 'ok') return fail(errors[result] || 'Не удалось сохранить статью.', result === 'forbidden' ? 403 : 409);
     const stored = await redis<string>('HGET', 'dw:articles', id);

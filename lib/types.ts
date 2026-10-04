@@ -1,4 +1,4 @@
-export type Article = { id: string; title: string; category: string; excerpt: string; content: string; cover: string; author_id: string; author_name: string; created_at: string; updated_at: string };
+export type Article = { approved?: boolean; id: string; title: string; category: string; excerpt: string; content: string; cover: string; author_id: string; author_name: string; created_at: string; updated_at: string };
 export const categories = ['Все статьи', 'История Класса', 'Мемы Класса', 'Знаменитости Класса', 'Проекты', 'Ученики Класса'];
 // Keep existing articles available when retiring the old categories.
 export const normalizeCategory = (category: string) => categories.slice(1).includes(category) ? category : category === 'История' ? 'История Класса' : 'Проекты';
