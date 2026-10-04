@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useWiki } from './wiki-provider';
-import type { Article } from '@/lib/types';
+import { normalizeCategory, type Article } from '@/lib/types';
 const sourceKey = 'd-wiki-articles-v1';
 export function RecoveryNotice() {
   const [count, setCount] = useState(0);
@@ -58,7 +58,7 @@ export function Recovery() {
           let content = row.content;
           const images = [...new Set(content.match(/data:image\/(?:png|jpeg|webp|gif);base64,[A-Za-z0-9+/=]+/g) || [])];
           for (const src of images) content = content.split(src).join(await imageUrl(src));
-          const id = await save({title:row.title, content, cover:await imageUrl(row.cover || ''), excerpt:row.excerpt || '', category:row.category, author_name:row.author_name || 'Автор'});
+          const id = await save({title:row.title, content, cover:await imageUrl(row.cover || ''), excerpt:row.excerpt || '', category:normalizeCategory(row.category), author_name:row.author_name || 'Автор'});
           try { localStorage.setItem(checkpoint,id); } catch {}
           existing.push({...row,id});
           report.push(`${row.title}: опубликована.`);

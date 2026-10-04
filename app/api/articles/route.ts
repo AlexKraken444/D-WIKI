@@ -4,7 +4,7 @@ import { configured, redis } from '@/lib/redis';
 import { author, sameOrigin, allowed } from '@/lib/server-auth';
 import { validateArticle } from '@/lib/article-validation';
 import { saveArticleScript } from '@/lib/article-script';
-import type { Article } from '@/lib/types';
+import { normalizeCategory, type Article } from '@/lib/types';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 const fail = (error: string, status: number) => NextResponse.json({ error }, { status });
@@ -13,7 +13,7 @@ export async function GET() {
   try {
     const id = await author(true);
     const values = await redis<string[]>('HVALS', 'dw:articles');
-    const articles = values.map(raw => { const { title_key, ...article } = JSON.parse(raw); void title_key; return article as Article; }).sort((a,b) => b.created_at.localeCompare(a.created_at));
+    const articles = values.map(raw => { const { title_key, ...article } = JSON.parse(raw); void title_key; return {...article,category:normalizeCategory(article.category)} as Article; }).sort((a,b) => b.created_at.localeCompare(a.created_at));
     return NextResponse.json({ articles, userId: id }, { headers: { 'Cache-Control': 'private, no-store' } });
   } catch { return fail('Не удалось подключиться к Upstash Redis. Проверьте настройки базы.', 503); }
 }
