@@ -1,4 +1,4 @@
-export const MAX_VIDEO_BYTES = 3 * 1024 * 1024;
+export const VIDEO_UPLOAD_CHUNK_BYTES = 192 * 1024;
 export { AUDIO_CHUNK_BYTES as VIDEO_CHUNK_BYTES, audioRange as videoRange } from './audio';
 
 export function videoMime(bytes: Uint8Array): string | null {
